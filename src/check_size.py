@@ -20,12 +20,11 @@ fs = HfFileSystem()
 repo_id = "HuggingFaceFW/fineweb-2"
 subset = "npi_Deva"
 
-# parquet_path = (f"datasets/{repo_id}/data/{subset}/train/000_00000.parquet")
+parquet_path = f"datasets/{repo_id}/data/{subset}/test/000_00000.parquet"
+print(f"Parquet path: {parquet_path}")
 
-# print(f"Parquet path: {parquet_path}")
-
-with fs.open(parquet_path, "rb") as f:
-    data = f.read()
+# with fs.open(parquet_path, "rb") as f:
+#     data = f.read()
 
 
 repository_path = f"datasets/{repo_id}/data/{subset}"
