@@ -1,0 +1,17 @@
+{
+  "method": "stratified_equal",
+  "seed": 42,
+  "parameters": {
+    "n": 1000,
+    "seed": 42,
+    "strata_col": "stratum"
+  },
+  "source_file": "/Users/siru/mini-data-project/raw/000_00000.parquet",
+  "source_row_count": 49462,
+  "sample_row_count": 1000,
+  "output_parquet": "/Users/siru/mini-data-project/reports/sampling/sample_stratified_equal.parquet",
+  "data_hash_sha256": "eb3f4b7ef72ad87ac322c2060b252e897a0e5184bad61cd0b23c58dc38697cbe",
+  "file_bytes_sha256": "979e59aebe2e3644750aafddd7eab8e835a22185e999411e2289f5a427d35d77",
+  "hashing_decision_rationale": "data_hash_sha256 is computed over sorted canonical row records to guarantee semantic reproducibility across environments where Parquet metadata timestamps vary. file_bytes_sha256 verifies physical transport integrity.",
+  "timestamp_utc": "2026-11-14T10:43:16.018828+00:00"
+}

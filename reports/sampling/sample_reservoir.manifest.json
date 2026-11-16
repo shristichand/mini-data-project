@@ -1,0 +1,17 @@
+{
+  "method": "reservoir_sampling",
+  "seed": 42,
+  "parameters": {
+    "n": 1000,
+    "seed": 42,
+    "batch_size": 2048
+  },
+  "source_file": "/Users/siru/mini-data-project/raw/000_00000.parquet",
+  "source_row_count": 49462,
+  "sample_row_count": 1000,
+  "output_parquet": "/Users/siru/mini-data-project/reports/sampling/sample_reservoir.parquet",
+  "data_hash_sha256": "624d8bd9f3fb06d8bd3230059441e4b1694d76cc1ab51fca5de86c71af88478a",
+  "file_bytes_sha256": "4ff7459a05c6891d12a74e97d9455da31c6d5a230fd18ee32e0afd761e0fc116",
+  "hashing_decision_rationale": "data_hash_sha256 is computed over sorted canonical row records to guarantee semantic reproducibility across environments where Parquet metadata timestamps vary. file_bytes_sha256 verifies physical transport integrity.",
+  "timestamp_utc": "2026-11-14T10:43:15.088171+00:00"
+}

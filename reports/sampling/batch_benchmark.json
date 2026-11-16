@@ -1,0 +1,70 @@
+{
+  "timestamp_utc": "2026-11-14T10:37:09.123894+00:00",
+  "shard_path": "/Users/siru/mini-data-project/raw/000_00000.parquet",
+  "file_size_mb": 66.24,
+  "total_rows": 49462,
+  "num_row_groups": 50,
+  "all_columns": [
+    "text",
+    "id",
+    "dump",
+    "url",
+    "date",
+    "file_path",
+    "language",
+    "language_score",
+    "language_script",
+    "minhash_cluster_size",
+    "top_langs"
+  ],
+  "projected_columns": [
+    "id",
+    "text",
+    "language_score"
+  ],
+  "batch_benchmarks": [
+    {
+      "batch_size": 512,
+      "num_batches": 97,
+      "first_batch_rows": 512,
+      "last_batch_rows": 310,
+      "total_rows_streamed": 49462,
+      "elapsed_seconds": 0.1638,
+      "throughput_rows_per_sec": 301882.8,
+      "avg_latency_ms_per_batch": 1.69,
+      "matches_metadata": true
+    },
+    {
+      "batch_size": 2048,
+      "num_batches": 25,
+      "first_batch_rows": 2048,
+      "last_batch_rows": 310,
+      "total_rows_streamed": 49462,
+      "elapsed_seconds": 0.1574,
+      "throughput_rows_per_sec": 314223.8,
+      "avg_latency_ms_per_batch": 6.3,
+      "matches_metadata": true
+    },
+    {
+      "batch_size": 8192,
+      "num_batches": 7,
+      "first_batch_rows": 8192,
+      "last_batch_rows": 310,
+      "total_rows_streamed": 49462,
+      "elapsed_seconds": 0.1693,
+      "throughput_rows_per_sec": 292185.3,
+      "avg_latency_ms_per_batch": 24.18,
+      "matches_metadata": true
+    }
+  ],
+  "projection_comparison": {
+    "batch_size": 2048,
+    "full_columns_count": 11,
+    "full_elapsed_seconds": 0.1841,
+    "full_throughput_rows_per_sec": 268674.3,
+    "projected_columns_count": 3,
+    "projected_elapsed_seconds": 0.1574,
+    "projected_throughput_rows_per_sec": 314223.8,
+    "speedup_factor": 1.17
+  }
+}
