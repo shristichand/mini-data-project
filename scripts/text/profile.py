@@ -18,7 +18,7 @@ import os
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib_cache"
 
 import pandas as pd
-from text_utils import add_derived_features
+from mini_data_project.text import add_derived_features
 
 
 def profile_missing_values(df: pd.DataFrame) -> dict:
@@ -266,7 +266,7 @@ def profile_suspicious_records(df: pd.DataFrame, print_examples: bool = True) ->
 
 
 def profile_language_distribution(
-    df: pd.DataFrame, plot_path: str = "logs/npi_deva_score_hist.png"
+    df: pd.DataFrame, plot_path: str = "reports/figures/language_score_histogram.png"
 ) -> pd.DataFrame:
     """Evaluate language classification confidence scores and measure Devanagari ratio across score bands."""
     print("\n" + "=" * 65)
@@ -401,7 +401,7 @@ def main():
     profile_duplicates(df)
     profile_text_length(df)
     profile_suspicious_records(df, print_examples=True)
-    profile_language_distribution(df, plot_path="logs/npi_deva_score_hist.png")
+    profile_language_distribution(df, plot_path="reports/figures/language_score_histogram.png")
     profile_domain_breakdown(df, top_n=15)
 
     print("\n" + "=" * 65)

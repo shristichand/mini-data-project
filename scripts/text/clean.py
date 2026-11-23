@@ -23,7 +23,7 @@ import argparse
 from datetime import datetime, timezone
 
 import pandas as pd
-from text_utils import add_derived_features
+from mini_data_project.text import add_derived_features
 
 
 DEFAULT_INPUT = "raw/sample_10k.parquet"

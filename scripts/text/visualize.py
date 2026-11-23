@@ -20,7 +20,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from text_utils import add_derived_features
+from mini_data_project.text import add_derived_features
 
 OUTPUT_DIR = "reports/figures"
 DATA_PATH = "raw/sample_10k.parquet"

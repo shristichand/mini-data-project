@@ -1,7 +1,7 @@
 [project]
 name = "mini-data-project"
 version = "0.1.0"
-description = "Add your description here"
+description = "FineWeb-2 Nepali Devanagari Data Engineering, Profiling, Sampling & Tokenization Suite"
 readme = "README.md"
 authors = [
     { name = "shristichand", email = "shristichand658@gmail.com" }

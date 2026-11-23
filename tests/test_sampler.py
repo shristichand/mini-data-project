@@ -15,17 +15,16 @@ import json
 import unittest
 from pathlib import Path
 
-# Add project root, src, and scripts to sys.path for test discovery
+# Add project root and src to sys.path for test discovery
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
-sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from config import SHARD_PATH, SAMPLING_REPORTS_DIR
-from sampler import (
+from mini_data_project.config import SHARD_PATH, SAMPLING_REPORTS_DIR
+from mini_data_project.sampling import (
     get_parquet_metadata,
     print_metadata,
     iter_batches,

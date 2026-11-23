@@ -22,10 +22,15 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from language_profiler import profile_text, calculate_quality_score
-from text_normalizer import clean_text_pipeline
-from tokenizers import AksharaTokenizer, BPETokenizer, SentenceTokenizer, WordTokenizer
-from unicode_utils import clean_unicode_pipeline
+from mini_data_project.text.language_profiler import profile_text, calculate_quality_score
+from mini_data_project.text.text_normalizer import clean_text_pipeline
+from mini_data_project.text.tokenizers import (
+    AksharaTokenizer,
+    BPETokenizer,
+    SentenceTokenizer,
+    WordTokenizer,
+)
+from mini_data_project.text.unicode_utils import clean_unicode_pipeline
 
 
 @dataclass
@@ -216,7 +221,7 @@ class TextDatasetPipeline:
         # Extract FineWeb-2 language scores if present
         npi_scores = None
         if "top_langs" in df.columns:
-            from text_utils import parse_npi_score
+            from mini_data_project.text.text_utils import parse_npi_score
             npi_scores = [parse_npi_score(v) for v in df["top_langs"]]
         elif "language_score" in df.columns:
             npi_scores = [float(v) if pd.notna(v) else None for v in df["language_score"]]

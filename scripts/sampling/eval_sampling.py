@@ -25,16 +25,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from config import SHARD_PATH, SAMPLING_REPORTS_DIR
-from sampler import (
+from mini_data_project.config import SAMPLING_REPORTS_DIR, SHARD_PATH
+from mini_data_project.sampling import (
+    add_strata,
     get_parquet_metadata,
     iter_batches,
     random_sample_inmemory,
     reservoir_sample,
-    add_strata,
-    stratified_sample,
-    stratified_equal,
     save_sample_with_manifest,
+    stratified_equal,
+    stratified_sample,
 )
 
 
@@ -262,14 +262,27 @@ def generate_production_samples_with_manifests(
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Sampling evaluation, benchmarking, uniformity verification, and manifests."
+    )
+    parser.add_argument("--n", type=int, default=1000, help="Sample size (default: 1000)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
+    parser.add_argument("--trials", type=int, default=200, help="Uniformity verification trials (default: 200)")
+    args = parser.parse_args()
+
     # 1. P4 Uniformity Verification
-    verify_reservoir_uniformity(population_size=100, sample_size=10, n_trials=200)
+    verify_reservoir_uniformity(population_size=100, sample_size=10, n_trials=args.trials)
 
     # 2. P6 & P7 Stratified Comparison
-    compare_stratified_allocations(path=SHARD_PATH, n=1000, seed=42)
+    compare_stratified_allocations(path=SHARD_PATH, n=args.n, seed=args.seed)
 
     # 3. P8 Production Samples & Manifests
-    generate_production_samples_with_manifests(path=SHARD_PATH, n=1000, seed=42)
+    generate_production_samples_with_manifests(path=SHARD_PATH, n=args.n, seed=args.seed)
+
+
+run_full_sampling_evaluation = main
 
 
 if __name__ == "__main__":

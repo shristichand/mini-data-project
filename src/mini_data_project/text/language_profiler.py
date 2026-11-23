@@ -66,6 +66,9 @@ def punct_ratio(text: str) -> float:
     return p_count / len(text)
 
 
+punctuation_ratio = punct_ratio
+
+
 def whitespace_ratio(text: str) -> float:
     """Compute ratio of whitespace characters."""
     if not text:

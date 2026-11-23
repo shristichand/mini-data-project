@@ -16,14 +16,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-# Add project root, src, and scripts to sys.path
+# Add project root and src to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
-sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 import pandas as pd
 
-from unicode_utils import (
+from mini_data_project.text import (
     clean_unicode_pipeline,
     normalize_unicode,
     remove_control_characters,
@@ -35,16 +34,12 @@ from unicode_utils import (
     ZWNJ,
     BOM,
     ZWSP,
-)
-from text_normalizer import (
     clean_text_pipeline,
     strip_html,
     normalize_whitespace,
     normalize_punctuation,
     convert_digits,
     mask_urls_and_emails,
-)
-from language_profiler import (
     devanagari_ratio,
     latin_ratio,
     digit_ratio,
@@ -55,14 +50,10 @@ from language_profiler import (
     calculate_quality_score,
     profile_text,
     NEPALI_STOPWORDS,
-)
-from tokenizers import (
     SentenceTokenizer,
     WordTokenizer,
     AksharaTokenizer,
     BPETokenizer,
-)
-from text_pipeline import (
     PipelineConfig,
     PipelineResult,
     TextDatasetPipeline,
@@ -362,7 +353,7 @@ class TestFineWeb2PipelineIntegration(unittest.TestCase):
         self.assertEqual(processed_df["id"].iloc[0], "urn:uuid:1")
 
     def test_download_and_sample_pipeline_bridge(self):
-        from download_and_sample import (
+        from mini_data_project.download import (
             SAMPLE_PARQUET_PATH,
             get_or_create_fineweb2_sample,
             inspect_schema,

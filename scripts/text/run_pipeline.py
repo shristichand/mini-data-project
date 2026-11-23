@@ -22,8 +22,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 import pandas as pd
-from config import SAMPLE_10K_PATH, SHARD_PATH
-from download_and_sample import (
+from mini_data_project.config import SAMPLE_10K_PATH, SHARD_PATH
+from mini_data_project.download import (
     REPO_ID,
     SUBSET,
     download_shard,
@@ -31,9 +31,7 @@ from download_and_sample import (
     get_or_create_fineweb2_sample,
     inspect_schema,
 )
-from text_pipeline import PipelineConfig, TextDatasetPipeline
-from tokenizers import BPETokenizer
-
+from mini_data_project.text import BPETokenizer, PipelineConfig, TextDatasetPipeline
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -247,7 +245,6 @@ def main():
         json.dump(full_report, f, ensure_ascii=False, indent=2)
     print(f"  -> Saved Audit Report to: {args.report}")
     print("\nText Dataset Pipeline completed successfully!")
-
 
 if __name__ == "__main__":
     main()

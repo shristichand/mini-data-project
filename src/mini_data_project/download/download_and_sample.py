@@ -198,8 +198,8 @@ def process_fineweb2_sample_with_pipeline(
     - Quality filtering
     - Tokenization (Word, Sentence, Akshara, or Subword BPE)
     """
-    from text_pipeline import PipelineConfig, TextDatasetPipeline
-    from tokenizers import BPETokenizer
+    from mini_data_project.text.text_pipeline import PipelineConfig, TextDatasetPipeline
+    from mini_data_project.text.tokenizers import BPETokenizer
 
     # 1. Get or create FineWeb-2 sample
     input_file = get_or_create_fineweb2_sample(preferred_path=sample_path)

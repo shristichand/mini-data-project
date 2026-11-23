@@ -1,5 +1,5 @@
 """
-scripts/sampler.py
+src/mini_data_project/sampler.py
 
 Unified sampling and batch processing module for FineWeb-2 Parquet datasets.
 Implements:
@@ -26,8 +26,8 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from config import SHARD_PATH, SAMPLING_REPORTS_DIR
-from text_utils import extract_domain
+from mini_data_project.config import SHARD_PATH, SAMPLING_REPORTS_DIR
+from mini_data_project.text.text_utils import extract_domain
 
 
 # =====================================================================
@@ -41,6 +41,9 @@ def get_parquet_metadata(path: str = SHARD_PATH) -> tuple[int, list[str], pq.Fil
     num_rows = metadata.num_rows
     col_names = pf.schema_arrow.names
     return num_rows, col_names, metadata
+
+
+inspect_parquet_metadata = get_parquet_metadata
 
 
 def print_metadata(path: str = SHARD_PATH) -> tuple[int, list[str]]:
