@@ -37,7 +37,7 @@ def cmd_info(args):
 
 def cmd_download(args):
     """Run shard discovery and download."""
-    from mini_data_project.download_and_sample import (
+    from mini_data_project.download import (
         download_shard,
         find_shards,
         get_or_create_fineweb2_sample,
@@ -57,7 +57,7 @@ def cmd_profile(args):
     """Execute the comprehensive data profiling audit."""
     import pandas as pd
     from mini_data_project.config import SAMPLE_10K_PATH, SHARD_PATH
-    from mini_data_project.text_utils import add_derived_features
+    from mini_data_project.text import add_derived_features
 
     path = args.input or (SAMPLE_10K_PATH if Path(SAMPLE_10K_PATH).exists() else SHARD_PATH)
     print(f"Profiling dataset at: {path}")

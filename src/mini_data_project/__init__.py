@@ -23,7 +23,6 @@ from mini_data_project.download import (
     find_shards,
     get_or_create_fineweb2_sample,
     inspect_schema,
-    process_fineweb2_sample_with_pipeline,
 )
 from mini_data_project.sampling import (
     add_strata,
@@ -70,6 +69,7 @@ from mini_data_project.text import (
     normalize_unicode,
     normalize_whitespace,
     parse_npi_score,
+    process_fineweb2_sample_with_pipeline,
     profile_text,
     punct_ratio,
     punctuation_ratio,
@@ -102,7 +102,6 @@ __all__ = [
     "download_shard",
     "inspect_schema",
     "get_or_create_fineweb2_sample",
-    "process_fineweb2_sample_with_pipeline",
     # Sampling
     "iter_batches",
     "get_parquet_metadata",
@@ -156,6 +155,7 @@ __all__ = [
     "TextDatasetPipeline",
     "PipelineConfig",
     "PipelineResult",
+    "process_fineweb2_sample_with_pipeline",
     # Utils
     "extract_domain",
     "add_derived_features",

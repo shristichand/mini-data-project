@@ -34,6 +34,7 @@ from mini_data_project.text.text_pipeline import (
     PipelineConfig,
     PipelineResult,
     TextDatasetPipeline,
+    process_fineweb2_sample_with_pipeline,
 )
 from mini_data_project.text.text_utils import (
     add_derived_features,
@@ -101,6 +102,7 @@ __all__ = [
     "TextDatasetPipeline",
     "PipelineConfig",
     "PipelineResult",
+    "process_fineweb2_sample_with_pipeline",
     # Utils
     "extract_domain",
     "add_derived_features",

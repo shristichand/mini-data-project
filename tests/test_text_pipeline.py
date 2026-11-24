@@ -357,8 +357,8 @@ class TestFineWeb2PipelineIntegration(unittest.TestCase):
             SAMPLE_PARQUET_PATH,
             get_or_create_fineweb2_sample,
             inspect_schema,
-            process_fineweb2_sample_with_pipeline,
         )
+        from mini_data_project.text import process_fineweb2_sample_with_pipeline
 
         sample_path = get_or_create_fineweb2_sample()
         self.assertTrue(os.path.exists(sample_path))

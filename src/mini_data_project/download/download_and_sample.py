@@ -1,9 +1,8 @@
 """
-src/download_and_sample.py
+src/mini_data_project/download/download_and_sample.py
 
 Hugging Face FineWeb-2 ('HuggingFaceFW/fineweb-2') shard discovery,
-download, low-memory schema inspection, sampling, and direct connection
-to the Text Dataset Pipeline.
+download, low-memory schema inspection, and raw baseline sampling.
 """
 
 import argparse
@@ -178,132 +177,22 @@ def get_or_create_fineweb2_sample(
     return created_sample
 
 
-def process_fineweb2_sample_with_pipeline(
-    sample_path: Optional[str] = None,
-    output_path: str = "processed/fineweb2_clean_tokenized.parquet",
-    report_path: str = "reports/fineweb2_pipeline_report.json",
-    tokenizer_mode: str = "word",
-    bpe_vocab_size: int = 3000,
-    min_deva_ratio: float = 0.50,
-    min_quality_score: float = 0.35,
-    min_npi_score: Optional[float] = 0.95,
-    limit: Optional[int] = None,
-) -> Tuple[pd.DataFrame, dict]:
-    """
-    Bridge function: takes the FineWeb-2 sample (created by download_and_sample)
-    and executes the complete Text Dataset Pipeline:
-    - Unicode Normalization & ZWJ/Nukta handling
-    - Text sanitization, HTML stripping, punctuation & whitespace cleanup
-    - Language characteristics profiling (TTR, script ratios, FineWeb-2 language scores)
-    - Quality filtering
-    - Tokenization (Word, Sentence, Akshara, or Subword BPE)
-    """
-    from mini_data_project.text.text_pipeline import PipelineConfig, TextDatasetPipeline
-    from mini_data_project.text.tokenizers import BPETokenizer
-
-    # 1. Get or create FineWeb-2 sample
-    input_file = get_or_create_fineweb2_sample(preferred_path=sample_path)
-    print(f"\n[FineWeb-2 Pipeline] Loading sample from {input_file}...")
-    df = pd.read_parquet(input_file)
-
-    if limit and limit < len(df):
-        print(f"Limiting to first {limit:,} records...")
-        df = df.iloc[:limit].copy()
-
-    initial_count = len(df)
-    print(f"Input records: {initial_count:,}")
-
-    # 2. Setup BPE if requested
-    bpe_model_path = None
-    if tokenizer_mode == "bpe":
-        bpe_save = "reports/fineweb2_bpe_tokenizer.json"
-        print(f"Training BPE Tokenizer on FineWeb-2 sample (vocab size: {bpe_vocab_size})...")
-        bpe = BPETokenizer(vocab_size=bpe_vocab_size)
-        sample_texts = df["text"].dropna().sample(min(1000, len(df)), random_state=42)
-        bpe.train(sample_texts, vocab_size=bpe_vocab_size, max_corpus_words=10000)
-        bpe.save(bpe_save)
-        bpe_model_path = bpe_save
-        print(f"BPE Tokenizer saved to {bpe_save} (Vocab size: {len(bpe.vocab)}).")
-
-    # 3. Configure Pipeline
-    config = PipelineConfig(
-        unicode_form="NFC",
-        strip_controls=True,
-        clean_invisibles=True,
-        sanitize_joiners=True,
-        canonical_nukta=True,
-        strip_html_tags=True,
-        normalize_whitespace=True,
-        normalize_punct=True,
-        min_char_len=40,
-        max_char_len=100000,
-        min_deva_ratio=min_deva_ratio,
-        max_punct_digit_ratio=0.40,
-        max_ngram_repetition=0.45,
-        min_quality_score=min_quality_score,
-        min_npi_score=min_npi_score,
-        tokenization_mode=tokenizer_mode,
-        bpe_vocab_size=bpe_vocab_size,
-        bpe_model_path=bpe_model_path,
-    )
-
-    pipeline = TextDatasetPipeline(config=config)
-    print(f"\n[FineWeb-2 Pipeline] Executing pipeline with tokenizer='{tokenizer_mode}'...")
-    processed_df, report = pipeline.process_dataframe(
-        df,
-        text_column="text",
-        output_tokens=True,
-        filter_rejected=True,
-    )
-
-    # 4. Save results
-    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-    os.makedirs(os.path.dirname(os.path.abspath(report_path)), exist_ok=True)
-
-    processed_df.to_parquet(output_path, index=False, compression="snappy")
-    print(f"  -> Saved cleaned & tokenized FineWeb-2 dataset to: {output_path} ({os.path.getsize(output_path)/(1024*1024):.2f} MB)")
-
-    full_report = {
-        "dataset": REPO_ID,
-        "subset": SUBSET,
-        "source_sample": input_file,
-        "output_file": output_path,
-        "pipeline_statistics": report,
-        "config": {
-            "tokenizer_mode": tokenizer_mode,
-            "min_deva_ratio": min_deva_ratio,
-            "min_quality_score": min_quality_score,
-            "min_npi_score": min_npi_score,
-        },
-    }
-
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(full_report, f, ensure_ascii=False, indent=2)
-    print(f"  -> Saved FineWeb-2 pipeline report to: {report_path}")
-
-    return processed_df, report
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description="FineWeb-2 Nepali Devanagari discovery, download, sampling, and text pipeline integration."
+        description="FineWeb-2 Nepali Devanagari discovery, download, and baseline sampling."
     )
-    parser.add_argument("--samples", type=int, default=10000, help="Number of rows to sample from FineWeb-2 shard (default: 10,000).")
-    parser.add_argument("--pipeline", action="store_true", help="Execute the text dataset pipeline on the FineWeb-2 sample.")
-    parser.add_argument("--tokenizer", type=str, default="word", choices=["word", "sentence", "akshara", "bpe", "none"], help="Tokenizer to apply.")
-    parser.add_argument("--limit", type=int, default=None, help="Optional limit for rapid testing.")
+    parser.add_argument(
+        "--samples",
+        type=int,
+        default=10000,
+        help="Number of rows to sample from FineWeb-2 shard (default: 10,000).",
+    )
     args = parser.parse_args()
 
-    if args.pipeline:
-        process_fineweb2_sample_with_pipeline(
-            tokenizer_mode=args.tokenizer,
-            limit=args.limit,
-        )
-    else:
-        test_shard = find_shards()
-        local_path = download_shard(test_shard)
-        inspect_schema(local_path)
-        sample_and_store(local_path, n_samples=args.samples)
+    test_shard = find_shards()
+    local_path = download_shard(test_shard)
+    inspect_schema(local_path)
+    sample_and_store(local_path, n_samples=args.samples)
 
 
 if __name__ == "__main__":

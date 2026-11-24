@@ -30,10 +30,6 @@ from mini_data_project.config import SHARD_PATH, SAMPLING_REPORTS_DIR
 from mini_data_project.text.text_utils import extract_domain
 
 
-# =====================================================================
-# P0: Parquet Metadata Inspection
-# =====================================================================
-
 def get_parquet_metadata(path: str = SHARD_PATH) -> tuple[int, list[str], pq.FileMetaData]:
     """Inspect Parquet file footer metadata without reading payload into memory."""
     pf = pq.ParquetFile(path)
@@ -61,11 +57,6 @@ def print_metadata(path: str = SHARD_PATH) -> tuple[int, list[str]]:
         print(f"  {idx:>2}. {col:<24} (physical: {col_type})")
     print("=" * 70)
     return num_rows, col_names
-
-
-# =====================================================================
-# P1: Low-Memory Batch Reader Generator
-# =====================================================================
 
 def iter_batches(
     path: str = SHARD_PATH,
