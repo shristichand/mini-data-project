@@ -1,15 +1,20 @@
 {
-  "timestamp": "2026-11-25 03:09:10 UTC",
-  "input_file": "/Users/siru/mini-data-project/raw/sample_10k.parquet",
+  "timestamp": "2026-11-25 10:34:34 UTC",
+  "input_file": "/Users/krezonatechnology/mini-data-project/raw/sample_10k.parquet",
   "output_file": "processed/pipeline_clean_tokenized.parquet",
   "pipeline_statistics": {
-    "initial_records": 100,
-    "retained_records": 100,
-    "dropped_records": 0,
-    "retention_rate_pct": 100.0,
-    "elapsed_seconds": 0.102,
-    "throughput_docs_sec": 980.39,
-    "rejection_breakdown": {},
+    "initial_records": 10000,
+    "retained_records": 9936,
+    "dropped_records": 64,
+    "retention_rate_pct": 99.36,
+    "elapsed_seconds": 10.063,
+    "throughput_docs_sec": 993.74,
+    "rejection_breakdown": {
+      "low_devanagari_ratio": 16,
+      "low_npi_score": 25,
+      "high_line_repetition": 24,
+      "low_quality_score": 6
+    },
     "tokenizer_mode": "word"
   },
   "config": {
