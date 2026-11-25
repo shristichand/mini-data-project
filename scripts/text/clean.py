@@ -20,10 +20,17 @@ Outputs:
 import os
 import json
 import argparse
+from dataclasses import asdict
 from datetime import datetime, timezone
+from typing import Optional
 
 import pandas as pd
-from mini_data_project.text import add_derived_features
+from mini_data_project.config import FilterThresholds
+from mini_data_project.text import (
+    add_derived_features,
+    clean_text_pipeline,
+    clean_unicode_pipeline,
+)
 
 
 DEFAULT_INPUT = "raw/sample_10k.parquet"
@@ -67,8 +74,16 @@ def run_cleaning_pipeline(
     input_path=DEFAULT_INPUT,
     output_path=DEFAULT_OUTPUT,
     log_path=DEFAULT_LOG,
+    thresholds: Optional[FilterThresholds] = None,
+    profile_name: str = "standard",
 ):
-    """Load, clean, and save the dataset with a cleaning report."""
+    """Load, normalize, clean, and save the dataset with a cleaning report."""
+    if thresholds is None:
+        thresholds = (
+            FilterThresholds.strict()
+            if profile_name == "strict"
+            else FilterThresholds.standard()
+        )
 
     # 1. Load dataset
     if not os.path.exists(input_path):
@@ -80,21 +95,29 @@ def run_cleaning_pipeline(
     initial_count = len(df)
     print(f"Initial records: {initial_count:,}")
 
-    # 2. Calculate derived quality metrics
-    print("Calculating derived features...")
-    df = add_derived_features(df)
+    # 2. Normalize text (single source of truth: measure normalized text, not raw uncleaned markup)
+    print("Normalizing text (Unicode NFC, joiners, HTML, punctuation)...")
+    if "cleaned_text" not in df.columns:
+        df["cleaned_text"] = df["text"].apply(
+            lambda t: clean_text_pipeline(clean_unicode_pipeline(str(t)))
+        )
 
-    # 3. Apply quality filters sequentially
+    # 3. Calculate derived quality metrics on cleaned text
+    print("Calculating derived features on cleaned text...")
+    df = add_derived_features(df, text_column="cleaned_text")
+
+    # 4. Apply quality filters sequentially using canonical thresholds
     cleaning_steps = []
 
-    print("\nApplying quality filters...")
+    print("\nApplying quality filters (canonical thresholds)...")
 
     # Filter 1: Language confidence
+    min_npi = thresholds.min_npi_score or 0.95
     df, log = apply_filter(
         df,
         "language_confidence_filter",
-        "Remove missing or low language confidence scores",
-        df["npi_Deva_score"].isna() | (df["npi_Deva_score"] < 0.95),
+        f"Remove missing or low language confidence scores (< {min_npi:.2f})",
+        df["npi_Deva_score"].isna() | (df["npi_Deva_score"] < min_npi),
         initial_count,
     )
     cleaning_steps.append(log)
@@ -103,8 +126,8 @@ def run_cleaning_pipeline(
     df, log = apply_filter(
         df,
         "script_purity_filter",
-        "Remove records with Devanagari ratio below 0.70",
-        df["deva_ratio"] < 0.70,
+        f"Remove records with Devanagari ratio below {thresholds.min_deva_ratio:.2f}",
+        df["deva_ratio"] < thresholds.min_deva_ratio,
         initial_count,
     )
     cleaning_steps.append(log)
@@ -113,8 +136,8 @@ def run_cleaning_pipeline(
     df, log = apply_filter(
         df,
         "tabular_symbol_noise_filter",
-        "Remove records with punctuation and digit ratio above 0.05",
-        df["punct_digit_ratio"] > 0.05,
+        f"Remove records with punctuation and digit ratio above {thresholds.max_punct_digit_ratio:.2f}",
+        df["punct_digit_ratio"] > thresholds.max_punct_digit_ratio,
         initial_count,
     )
     cleaning_steps.append(log)
@@ -123,8 +146,8 @@ def run_cleaning_pipeline(
     df, log = apply_filter(
         df,
         "boilerplate_repetition_filter",
-        "Remove records with a line repeated three or more times",
-        df["max_line_repeat"] >= 3,
+        f"Remove records with a line repeated {thresholds.max_line_repeat} or more times",
+        df["max_line_repeat"] >= thresholds.max_line_repeat,
         initial_count,
     )
     cleaning_steps.append(log)
@@ -133,8 +156,8 @@ def run_cleaning_pipeline(
     df, log = apply_filter(
         df,
         "short_stub_filter",
-        "Remove records shorter than 500 characters",
-        df["char_len"] < 500,
+        f"Remove records shorter than {thresholds.min_char_len} characters",
+        df["char_len"] < thresholds.min_char_len,
         initial_count,
     )
     cleaning_steps.append(log)
@@ -143,8 +166,8 @@ def run_cleaning_pipeline(
     df, log = apply_filter(
         df,
         "extreme_length_filter",
-        "Remove records longer than 25,000 characters",
-        df["char_len"] > 25000,
+        f"Remove records longer than {thresholds.max_char_len:,} characters",
+        df["char_len"] > thresholds.max_char_len,
         initial_count,
     )
     cleaning_steps.append(log)
@@ -180,6 +203,8 @@ def run_cleaning_pipeline(
         "total_records_removed": total_removed,
         "removal_percentage": removal_pct,
         "retention_percentage": retention_pct,
+        "thresholds_used": asdict(thresholds),
+        "measured_text_target": "cleaned_text (normalized)",
         "cleaning_steps": cleaning_steps,
     }
 
@@ -206,19 +231,44 @@ def run_cleaning_pipeline(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Clean FineWeb-2 Nepali Devanagari dataset."
+        description="Clean FineWeb-2 Nepali Devanagari dataset using canonical thresholds."
     )
 
     parser.add_argument("--input", default=DEFAULT_INPUT)
     parser.add_argument("--output", default=DEFAULT_OUTPUT)
     parser.add_argument("--log", default=DEFAULT_LOG)
+    parser.add_argument(
+        "--profile",
+        choices=["standard", "strict"],
+        default="standard",
+        help="Canonical filter threshold profile (default: standard).",
+    )
+    parser.add_argument("--min-deva", type=float, default=None, help="Override min Devanagari ratio")
+    parser.add_argument("--max-noise", type=float, default=None, help="Override max punct/digit noise ratio")
+    parser.add_argument("--min-len", type=int, default=None, help="Override min char length")
+    parser.add_argument("--max-len", type=int, default=None, help="Override max char length")
 
     args = parser.parse_args()
+
+    # Base thresholds from canonical profile
+    base = FilterThresholds.strict() if args.profile == "strict" else FilterThresholds.standard()
+    thresholds = FilterThresholds(
+        min_char_len=args.min_len if args.min_len is not None else base.min_char_len,
+        max_char_len=args.max_len if args.max_len is not None else base.max_char_len,
+        min_deva_ratio=args.min_deva if args.min_deva is not None else base.min_deva_ratio,
+        max_punct_digit_ratio=args.max_noise if args.max_noise is not None else base.max_punct_digit_ratio,
+        max_line_repeat=base.max_line_repeat,
+        min_npi_score=base.min_npi_score,
+        max_ngram_repetition=base.max_ngram_repetition,
+        min_quality_score=base.min_quality_score,
+    )
 
     run_cleaning_pipeline(
         input_path=args.input,
         output_path=args.output,
         log_path=args.log,
+        thresholds=thresholds,
+        profile_name=args.profile,
     )
 
 

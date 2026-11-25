@@ -9,6 +9,7 @@ Organized into three functional domains:
 
 from mini_data_project import download, sampling, text
 from mini_data_project.config import (
+    FilterThresholds,
     PROJECT_ROOT,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
@@ -71,7 +72,10 @@ from mini_data_project.text import (
     parse_npi_score,
     process_fineweb2_sample_with_pipeline,
     profile_text,
+    PUNCT_SET,
+    EXTENDED_PUNCT_SET,
     punct_ratio,
+    punct_digit_ratio,
     punctuation_ratio,
     remove_control_characters,
     remove_invisible_characters,
@@ -89,6 +93,7 @@ __all__ = [
     "sampling",
     "text",
     # Config
+    "FilterThresholds",
     "PROJECT_ROOT",
     "SHARD_PATH",
     "SAMPLE_10K_PATH",
@@ -141,7 +146,10 @@ __all__ = [
     "latin_ratio",
     "digit_ratio",
     "punct_ratio",
+    "punct_digit_ratio",
     "punctuation_ratio",
+    "PUNCT_SET",
+    "EXTENDED_PUNCT_SET",
     "stopword_ratio",
     "type_token_ratio",
     "ngram_repetition_ratio",

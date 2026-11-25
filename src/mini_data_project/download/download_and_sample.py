@@ -15,6 +15,9 @@ import pandas as pd
 import pyarrow.parquet as pq
 from huggingface_hub import HfFileSystem, hf_hub_download
 
+# Canonical re-export of orchestration function to prevent codebase drift
+from mini_data_project.text.text_pipeline import process_fineweb2_sample_with_pipeline
+
 REPO_ID = "HuggingFaceFW/fineweb-2"
 SUBSET = "npi_Deva"
 DATASET_PATH = f"datasets/{REPO_ID}/data/{SUBSET}"
@@ -94,12 +97,13 @@ def download_shard(file_path: str = "data/npi_Deva/test/000_00000.parquet") -> s
 
 def inspect_schema(file_path: str) -> Tuple[pq.ParquetSchema, int]:
     """Inspect schema and metadata using pyarrow.parquet.ParquetFile without full load."""
-    print(f"\n=== Inspecting FineWeb-2 Schema with PyArrow: {file_path} ===")
-    parquet_file = pq.ParquetFile(file_path)
+    from mini_data_project.sampling.sampler import get_parquet_metadata
 
-    num_rows = parquet_file.metadata.num_rows
+    num_rows, col_names, metadata = get_parquet_metadata(file_path)
+    parquet_file = pq.ParquetFile(file_path)
     schema = parquet_file.schema_arrow
 
+    print(f"\n=== Inspecting FineWeb-2 Schema with PyArrow: {file_path} ===")
     print(f"Total row count (from metadata): {num_rows:,}")
     print("\nFineWeb-2 Column names and types:")
     for field in schema:

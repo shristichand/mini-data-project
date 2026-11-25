@@ -4,7 +4,9 @@ src/config.py
 Centralized configuration for dataset paths, sampling parameters, and output directories.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 # Project root directory
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -30,3 +32,40 @@ SAMPLING_REPORTS_DIR = str(PROJECT_ROOT / "reports" / "sampling")
 RAW_DATA_DIR = str(PROJECT_ROOT / "raw")
 PROCESSED_DATA_DIR = str(PROJECT_ROOT / "processed")
 REPORTS_DIR = str(PROJECT_ROOT / "reports")
+
+
+@dataclass
+class FilterThresholds:
+    """
+    Canonical quality filter thresholds for Nepali Devanagari text curation.
+    Serves as the single source of truth across cleaning scripts, profiling,
+    and streaming dataset pipelines.
+    """
+    min_char_len: int = 50
+    max_char_len: int = 100_000
+    min_deva_ratio: float = 0.50
+    max_punct_digit_ratio: float = 0.40
+    max_line_repeat: int = 3
+    min_npi_score: Optional[float] = 0.95
+    max_ngram_repetition: float = 0.45
+    min_quality_score: float = 0.35
+
+    @classmethod
+    def standard(cls) -> "FilterThresholds":
+        """Balanced production profile for Nepali Devanagari web curation."""
+        return cls()
+
+    @classmethod
+    def strict(cls) -> "FilterThresholds":
+        """High-precision strict profile for high-confidence pretraining corpora."""
+        return cls(
+            min_char_len=500,
+            max_char_len=25_000,
+            min_deva_ratio=0.70,
+            max_punct_digit_ratio=0.05,
+            max_line_repeat=3,
+            min_npi_score=0.95,
+            max_ngram_repetition=0.35,
+            min_quality_score=0.50,
+        )
+

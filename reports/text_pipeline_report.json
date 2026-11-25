@@ -1,18 +1,15 @@
 {
-  "timestamp": "2026-11-17 09:17:22 UTC",
-  "input_file": "raw/sample_10k.parquet",
+  "timestamp": "2026-11-25 03:09:10 UTC",
+  "input_file": "/Users/siru/mini-data-project/raw/sample_10k.parquet",
   "output_file": "processed/pipeline_clean_tokenized.parquet",
   "pipeline_statistics": {
-    "initial_records": 1000,
-    "retained_records": 999,
-    "dropped_records": 1,
-    "retention_rate_pct": 99.9,
-    "elapsed_seconds": 1.045,
-    "throughput_docs_sec": 956.94,
-    "rejection_breakdown": {
-      "low_devanagari_ratio": 1,
-      "low_npi_score": 1
-    },
+    "initial_records": 100,
+    "retained_records": 100,
+    "dropped_records": 0,
+    "retention_rate_pct": 100.0,
+    "elapsed_seconds": 0.102,
+    "throughput_docs_sec": 980.39,
+    "rejection_breakdown": {},
     "tokenizer_mode": "word"
   },
   "config": {

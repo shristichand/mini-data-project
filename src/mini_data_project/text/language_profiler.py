@@ -7,14 +7,21 @@ and heuristic quality scoring for text datasets (with specialized Nepali Devanag
 
 import math
 import re
-import string
 from collections import Counter
 from typing import Any, Dict, List, Set
 
-# Extended punctuation set covering ASCII and standard Nepali/Devanagari marks
-EXTENDED_PUNCT_SET: Set[str] = set(string.punctuation) | {
-    "।", "॥", "‘", "’", "“", "”", "—", "–", "…", "·", "•", "«", "»", "।", "॥"
-}
+from mini_data_project.text.text_utils import (
+    EXTENDED_PUNCT_SET,
+    PUNCT_SET,
+    devanagari_ratio,
+    digit_ratio,
+    max_line_repetition,
+    punct_digit_ratio,
+    punct_ratio,
+)
+
+# Alias for backward compatibility
+punctuation_ratio = punct_ratio
 
 # Curated list of high-frequency Nepali stopwords
 NEPALI_STOPWORDS: Set[str] = {
@@ -32,41 +39,12 @@ NEPALI_STOPWORDS: Set[str] = {
 }
 
 
-def devanagari_ratio(text: str) -> float:
-    """Compute the ratio of Devanagari characters (U+0900 to U+097F)."""
-    if not text:
-        return 0.0
-    deva_count = sum(1 for c in text if "\u0900" <= c <= "\u097F")
-    return deva_count / len(text)
-
-
 def latin_ratio(text: str) -> float:
     """Compute the ratio of Latin alphabet characters (a-z, A-Z)."""
     if not text:
         return 0.0
     latin_count = sum(1 for c in text if ("a" <= c <= "z") or ("A" <= c <= "Z"))
     return latin_count / len(text)
-
-
-def digit_ratio(text: str) -> float:
-    """Compute ratio of digits (both ASCII 0-9 and Devanagari ०-९)."""
-    if not text:
-        return 0.0
-    digit_count = sum(
-        1 for c in text if c.isdigit() or ("\u0966" <= c <= "\u096F")
-    )
-    return digit_count / len(text)
-
-
-def punct_ratio(text: str) -> float:
-    """Compute ratio of punctuation marks."""
-    if not text:
-        return 0.0
-    p_count = sum(1 for c in text if c in EXTENDED_PUNCT_SET)
-    return p_count / len(text)
-
-
-punctuation_ratio = punct_ratio
 
 
 def whitespace_ratio(text: str) -> float:
@@ -127,18 +105,6 @@ def stopword_ratio(text: str, custom_stopwords: Set[str] = None) -> float:
     stopwords = custom_stopwords if custom_stopwords is not None else NEPALI_STOPWORDS
     sw_count = sum(1 for w in words if w in stopwords)
     return sw_count / len(words)
-
-
-def max_line_repetition(text: str, min_line_len: int = 4) -> int:
-    """Compute maximum frequency of any non-trivial line in the text."""
-    if not text:
-        return 0
-    lines = [
-        line.strip() for line in text.split("\n") if len(line.strip()) >= min_line_len
-    ]
-    if not lines:
-        return 0
-    return Counter(lines).most_common(1)[0][1]
 
 
 def ngram_repetition_ratio(text: str, n: int = 3) -> float:
@@ -221,17 +187,22 @@ def calculate_quality_score(
 def profile_text(text: str, min_char_len: int = 40) -> Dict[str, Any]:
     """
     Generate an exhaustive linguistic, statistical, and quality profile for a document.
+    Provides dual aliases (char_len/char_count, word_len/word_count, punct_digit_ratio)
+    to guarantee vocabulary consistency across the entire codebase.
     """
     if not text:
         return {
             "char_count": 0,
+            "char_len": 0,
             "byte_count": 0,
             "word_count": 0,
+            "word_len": 0,
             "line_count": 0,
             "deva_ratio": 0.0,
             "latin_ratio": 0.0,
             "digit_ratio": 0.0,
             "punct_ratio": 0.0,
+            "punct_digit_ratio": 0.0,
             "whitespace_ratio": 0.0,
             "other_script_ratio": 0.0,
             "ttr": 0.0,
@@ -244,13 +215,16 @@ def profile_text(text: str, min_char_len: int = 40) -> Dict[str, Any]:
     words = get_words(text)
     return {
         "char_count": len(text),
+        "char_len": len(text),
         "byte_count": len(text.encode("utf-8")),
         "word_count": len(words),
+        "word_len": len(words),
         "line_count": len(text.split("\n")),
         "deva_ratio": round(devanagari_ratio(text), 4),
         "latin_ratio": round(latin_ratio(text), 4),
         "digit_ratio": round(digit_ratio(text), 4),
         "punct_ratio": round(punct_ratio(text), 4),
+        "punct_digit_ratio": round(punct_digit_ratio(text), 4),
         "whitespace_ratio": round(whitespace_ratio(text), 4),
         "other_script_ratio": round(other_script_ratio(text), 4),
         "ttr": round(type_token_ratio(text), 4),

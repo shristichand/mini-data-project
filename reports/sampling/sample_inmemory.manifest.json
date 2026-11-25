@@ -12,5 +12,5 @@
   "data_hash_sha256": "987688bbd9bb7525d11304976d6f7ff15f17c7933cebb457e47f1a5c1b0de96a",
   "file_bytes_sha256": "a01b9651381775d322e6f96871f966b833f4dd6a9a5eb3f765aeb2d2be1dc3a3",
   "hashing_decision_rationale": "data_hash_sha256 is computed over sorted canonical row records to guarantee semantic reproducibility across environments where Parquet metadata timestamps vary. file_bytes_sha256 verifies physical transport integrity.",
-  "timestamp_utc": "2026-11-14T10:43:14.622231+00:00"
+  "timestamp_utc": "2026-11-25T03:09:08.767092+00:00"
 }

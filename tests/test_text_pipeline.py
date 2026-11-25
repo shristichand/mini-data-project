@@ -387,5 +387,108 @@ class TestFineWeb2PipelineIntegration(unittest.TestCase):
             self.assertIn("quality_score", processed_df.columns)
 
 
+class TestSingleSourceOfTruth(unittest.TestCase):
+    """Test suite ensuring single source of truth across all modules."""
+
+    def test_linguistic_and_punctuation_single_source(self):
+        """Verify devanagari_ratio, max_line_repetition, and PUNCT_SET are identical references."""
+        from mini_data_project.text.text_utils import (
+            PUNCT_SET,
+            EXTENDED_PUNCT_SET,
+            devanagari_ratio as tu_deva,
+            digit_ratio as tu_digit,
+            max_line_repetition as tu_rep,
+            punct_digit_ratio as tu_pd,
+            punct_ratio as tu_punct,
+        )
+        from mini_data_project.text.language_profiler import (
+            EXTENDED_PUNCT_SET as lp_punct_set,
+            devanagari_ratio as lp_deva,
+            digit_ratio as lp_digit,
+            max_line_repetition as lp_rep,
+            punct_digit_ratio as lp_pd,
+            punct_ratio as lp_punct,
+        )
+
+        # Same function identity
+        self.assertIs(tu_deva, lp_deva)
+        self.assertIs(tu_rep, lp_rep)
+        self.assertIs(tu_punct, lp_punct)
+        self.assertIs(tu_digit, lp_digit)
+        self.assertIs(tu_pd, lp_pd)
+        self.assertIs(PUNCT_SET, EXTENDED_PUNCT_SET)
+        self.assertEqual(PUNCT_SET, lp_punct_set)
+
+        # Guillemets are included in both
+        self.assertIn("«", PUNCT_SET)
+        self.assertIn("»", PUNCT_SET)
+        self.assertIn("«", lp_punct_set)
+        self.assertIn("»", lp_punct_set)
+
+    def test_feature_names_harmonization(self):
+        """Verify dual vocabulary (char_len/char_count, punct_digit_ratio) in profiler and derived features."""
+        from mini_data_project.text import profile_text, add_derived_features
+
+        sample = "«नमस्ते नेपाल» १२३।"
+        prof = profile_text(sample)
+
+        # Profile dict has both vocabularies
+        self.assertIn("char_len", prof)
+        self.assertIn("char_count", prof)
+        self.assertEqual(prof["char_len"], prof["char_count"])
+
+        self.assertIn("word_len", prof)
+        self.assertIn("word_count", prof)
+        self.assertEqual(prof["word_len"], prof["word_count"])
+
+        self.assertIn("punct_digit_ratio", prof)
+        self.assertIn("punct_ratio", prof)
+        self.assertIn("digit_ratio", prof)
+        self.assertAlmostEqual(
+            prof["punct_digit_ratio"],
+            round(prof["punct_ratio"] + prof["digit_ratio"], 4),
+            places=3,
+        )
+
+        # add_derived_features populates both vocabularies
+        df = pd.DataFrame({"text": [sample]})
+        df_feat = add_derived_features(df)
+        self.assertEqual(df_feat["char_len"].iloc[0], df_feat["char_count"].iloc[0])
+        self.assertEqual(df_feat["word_len"].iloc[0], df_feat["word_count"].iloc[0])
+        self.assertEqual(
+            df_feat["punct_digit_ratio"].iloc[0],
+            df_feat["punct_ratio"].iloc[0] + df_feat["digit_ratio"].iloc[0],
+        )
+
+    def test_canonical_orchestration_and_metadata_inspection(self):
+        """Verify process_fineweb2_sample_with_pipeline and inspect_schema are unified."""
+        from mini_data_project.text import process_fineweb2_sample_with_pipeline as p_text
+        from mini_data_project.download import process_fineweb2_sample_with_pipeline as p_down
+        self.assertIs(p_text, p_down)
+
+        from mini_data_project.sampling import inspect_schema as s_sampling, get_parquet_metadata
+        from mini_data_project.download import inspect_schema as s_download
+        from mini_data_project.config import SHARD_PATH
+
+        num_rows, cols, meta = get_parquet_metadata(SHARD_PATH)
+        schema, rows = s_download(SHARD_PATH)
+        self.assertEqual(rows, num_rows)
+        self.assertEqual(schema.names, cols)
+
+    def test_filter_thresholds_alignment(self):
+        """Verify PipelineConfig defaults match FilterThresholds canonical single source of truth."""
+        from mini_data_project.config import FilterThresholds
+        from mini_data_project.text import PipelineConfig
+
+        config = PipelineConfig()
+        canonical = FilterThresholds.standard()
+
+        self.assertEqual(config.min_char_len, canonical.min_char_len)
+        self.assertEqual(config.max_char_len, canonical.max_char_len)
+        self.assertEqual(config.min_deva_ratio, canonical.min_deva_ratio)
+        self.assertEqual(config.max_punct_digit_ratio, canonical.max_punct_digit_ratio)
+        self.assertEqual(config.max_line_repeat, canonical.max_line_repeat)
+
+
 if __name__ == "__main__":
     unittest.main()

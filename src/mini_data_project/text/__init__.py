@@ -37,9 +37,12 @@ from mini_data_project.text.text_pipeline import (
     process_fineweb2_sample_with_pipeline,
 )
 from mini_data_project.text.text_utils import (
+    EXTENDED_PUNCT_SET,
+    PUNCT_SET,
     add_derived_features,
     extract_domain,
     parse_npi_score,
+    punct_digit_ratio,
 )
 from mini_data_project.text.tokenizers import (
     AksharaTokenizer,
@@ -88,7 +91,10 @@ __all__ = [
     "latin_ratio",
     "digit_ratio",
     "punct_ratio",
+    "punct_digit_ratio",
     "punctuation_ratio",
+    "PUNCT_SET",
+    "EXTENDED_PUNCT_SET",
     "stopword_ratio",
     "type_token_ratio",
     "ngram_repetition_ratio",

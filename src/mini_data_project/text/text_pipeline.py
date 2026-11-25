@@ -22,6 +22,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from mini_data_project.config import FilterThresholds
 from mini_data_project.text.language_profiler import profile_text, calculate_quality_score
 from mini_data_project.text.text_normalizer import clean_text_pipeline
 from mini_data_project.text.tokenizers import (
@@ -53,14 +54,15 @@ class PipelineConfig:
     ascii_digits: bool = False
     lowercase: bool = False
 
-    # Quality filters (set to None or 0 to disable)
-    min_char_len: int = 50
-    max_char_len: int = 100000
-    min_deva_ratio: float = 0.50
-    max_punct_digit_ratio: float = 0.40
-    max_ngram_repetition: float = 0.45
-    min_quality_score: float = 0.35
-    min_npi_score: Optional[float] = None  # FineWeb-2 language classifier confidence
+    # Quality filters (canonical single source of truth from FilterThresholds)
+    min_char_len: int = FilterThresholds.min_char_len
+    max_char_len: int = FilterThresholds.max_char_len
+    min_deva_ratio: float = FilterThresholds.min_deva_ratio
+    max_punct_digit_ratio: float = FilterThresholds.max_punct_digit_ratio
+    max_line_repeat: Optional[int] = FilterThresholds.max_line_repeat
+    max_ngram_repetition: float = FilterThresholds.max_ngram_repetition
+    min_quality_score: float = FilterThresholds.min_quality_score
+    min_npi_score: Optional[float] = None  # FineWeb-2 language classifier confidence (None or float)
 
     # Tokenization
     tokenization_mode: Optional[str] = "word"  # "word", "sentence", "akshara", "bpe", None
@@ -141,7 +143,7 @@ class TextDatasetPipeline:
         """Check all configured quality filter thresholds."""
         reasons = []
 
-        char_len = profile.get("char_count", len(text))
+        char_len = profile.get("char_count", profile.get("char_len", len(text)))
         if char_len < self.config.min_char_len:
             reasons.append(f"below_min_char_len ({char_len} < {self.config.min_char_len})")
         if char_len > self.config.max_char_len:
@@ -151,9 +153,17 @@ class TextDatasetPipeline:
         if deva_ratio < self.config.min_deva_ratio:
             reasons.append(f"low_devanagari_ratio ({deva_ratio:.3f} < {self.config.min_deva_ratio})")
 
-        pd_ratio = profile.get("punct_ratio", 0.0) + profile.get("digit_ratio", 0.0)
+        pd_ratio = profile.get(
+            "punct_digit_ratio",
+            profile.get("punct_ratio", 0.0) + profile.get("digit_ratio", 0.0),
+        )
         if pd_ratio > self.config.max_punct_digit_ratio:
             reasons.append(f"high_punct_digit_noise ({pd_ratio:.3f} > {self.config.max_punct_digit_ratio})")
+
+        if self.config.max_line_repeat is not None:
+            max_repeat = profile.get("max_line_repeat", 0)
+            if max_repeat >= self.config.max_line_repeat:
+                reasons.append(f"high_line_repetition ({max_repeat} >= {self.config.max_line_repeat})")
 
         rep_ratio = profile.get("ngram_3_repetition", 0.0)
         if rep_ratio > self.config.max_ngram_repetition:
@@ -183,15 +193,6 @@ class TextDatasetPipeline:
                 tokens = self.tokenizer.encode(cleaned)
             else:
                 tokens = self.tokenizer.tokenize(cleaned)
-
-        return PipelineResult(
-            raw_text=text,
-            cleaned_text=cleaned,
-            passed=passed,
-            rejection_reasons=reasons,
-            tokens=tokens,
-            profile=profile,
-        )
 
         return PipelineResult(
             raw_text=text,
@@ -254,7 +255,9 @@ class TextDatasetPipeline:
         processed_df["cleaned_text"] = cleaned_texts
         processed_df["passed_pipeline"] = pass_flags
         processed_df["char_count"] = char_counts
+        processed_df["char_len"] = char_counts
         processed_df["word_count"] = word_counts
+        processed_df["word_len"] = word_counts
         processed_df["deva_ratio"] = deva_ratios
         processed_df["quality_score"] = quality_scores
 

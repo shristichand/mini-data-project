@@ -42,6 +42,12 @@ def get_parquet_metadata(path: str = SHARD_PATH) -> tuple[int, list[str], pq.Fil
 inspect_parquet_metadata = get_parquet_metadata
 
 
+def inspect_schema(path: str = SHARD_PATH):
+    """Bridge to unified schema inspection."""
+    from mini_data_project.download.download_and_sample import inspect_schema as _inspect_schema
+    return _inspect_schema(path)
+
+
 def print_metadata(path: str = SHARD_PATH) -> tuple[int, list[str]]:
     """Print the row count and column names from the Parquet metadata."""
     num_rows, col_names, metadata = get_parquet_metadata(path)
@@ -128,10 +134,6 @@ def benchmark_batch_reader(
     return results
 
 
-# =====================================================================
-# P2: Random In-Memory Sampling
-# =====================================================================
-
 def random_sample_inmemory(
     path: str = SHARD_PATH,
     n: int = 1000,
@@ -147,10 +149,6 @@ def random_sample_inmemory(
     sample_df = df.sample(n=sample_size, random_state=seed).reset_index(drop=True)
     return sample_df
 
-
-# =====================================================================
-# P3: Reservoir Sampling (Bounded Memory: n + 1 batch)
-# =====================================================================
 
 def reservoir_sample(
     path: str = SHARD_PATH,
@@ -184,10 +182,6 @@ def reservoir_sample(
     sample_df = pd.DataFrame(reservoir)
     return sample_df
 
-
-# =====================================================================
-# P5: Strata Generation
-# =====================================================================
 
 def add_strata(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
     """
@@ -232,10 +226,6 @@ def add_strata(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
 
     return df
 
-
-# =====================================================================
-# P6: Proportional Stratified Sampling
-# =====================================================================
 
 def stratified_sample(
     df: pd.DataFrame,
@@ -302,10 +292,6 @@ def stratified_sample(
     assert len(sample_df) == n, f"Proportional sample size {len(sample_df)} != {n}"
     return sample_df
 
-
-# =====================================================================
-# P7: Equal-Allocation Stratified Sampling
-# =====================================================================
 
 def stratified_equal(
     df: pd.DataFrame,
@@ -376,10 +362,6 @@ def stratified_equal(
     assert len(sample_df) == n, f"Equal sample size {len(sample_df)} != {n}"
     return sample_df
 
-
-# =====================================================================
-# P8: Reproducibility Manifest Generator
-# =====================================================================
 
 def compute_canonical_data_hash(df: pd.DataFrame) -> str:
     """
