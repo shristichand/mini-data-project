@@ -9,6 +9,7 @@ from mini_data_project.sampling.sampler import (
     add_strata,
     benchmark_batch_reader,
     compute_canonical_data_hash,
+    compute_file_hash,
     compute_file_sha256,
     get_parquet_metadata,
     inspect_parquet_metadata,
@@ -35,6 +36,7 @@ __all__ = [
     "stratified_sample",
     "stratified_equal",
     "compute_canonical_data_hash",
+    "compute_file_hash",
     "compute_file_sha256",
     "save_sample_with_manifest",
 ]

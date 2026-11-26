@@ -17,7 +17,7 @@ from mini_data_project.text import (
 )
 
 # raw_text = "<p>नेपाल\u200Bमा २०८१ सालमा <b>पर्यटन</b> प्रवर्द्धन भयो! Visit Nepal 2024.</p>"
-raw_text = "<div class=\"post\"><p>आजको मौसम पूर्वानुमान</p></div> &nbsp; Copyright © 2024 सर्वाधिकार सुरक्षित | Home | About Us | Contact"
+raw_text = "<div class=\"post\"><p>आजको     मौसम पूर्वानुमान</p></div> &nbsp; Copyright © 2024 सर्वाधिकार सुरक्षित | Home | About Us | Contact"
 
 # 1. Character-level cleaning, then text-level cleaning
 cleaned = clean_text_pipeline(

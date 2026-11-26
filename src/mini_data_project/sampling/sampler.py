@@ -363,15 +363,15 @@ def stratified_equal(
     return sample_df
 
 
-def compute_canonical_data_hash(df: pd.DataFrame) -> str:
+def compute_canonical_data_hash(df: pd.DataFrame, algorithm: str = "sha256") -> str:
     """
-    Compute a deterministic SHA-256 hash over sorted records.
+    Compute a deterministic hash (default SHA-256) over sorted records.
     Immune to Parquet metadata timestamp variations.
     """
     sort_cols = ["id"] if "id" in df.columns else list(df.columns)
     sorted_df = df.sort_values(sort_cols).reset_index(drop=True)
 
-    hasher = hashlib.sha256()
+    hasher = getattr(hashlib, algorithm.lower())()
     json_lines = sorted_df.to_json(orient="records", lines=True, force_ascii=False)
     for line in json_lines.splitlines():
         hasher.update(line.encode("utf-8"))
@@ -379,13 +379,16 @@ def compute_canonical_data_hash(df: pd.DataFrame) -> str:
     return hasher.hexdigest()
 
 
-def compute_file_sha256(path: str) -> str:
-    """Compute binary SHA-256 of physical file bytes."""
-    hasher = hashlib.sha256()
+def compute_file_sha256(path: str | Path, algorithm: str = "sha256") -> str:
+    """Compute binary hash (default SHA-256) of physical file bytes."""
+    hasher = getattr(hashlib, algorithm.lower())()
     with open(path, "rb") as f:
         while chunk := f.read(65536):
             hasher.update(chunk)
     return hasher.hexdigest()
+
+
+compute_file_hash = compute_file_sha256
 
 
 def save_sample_with_manifest(

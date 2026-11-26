@@ -2,8 +2,6 @@
 
 A modular, clean data engineering, profiling, sampling, and text preprocessing suite for the Nepali Devanagari (`npi_Deva`) subset of Hugging Face's [`HuggingFaceFW/fineweb-2`](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2) dataset.
 
-> 💡 **New to this project or learning NLP?** Check out the [📘 Beginner & Learner Guide](LEARNER_GUIDE.md) for a simple, 30-second explanation, plain-English glossary, and step-by-step walkthrough!
-
 ---
 
 ## 1. Project Overview
